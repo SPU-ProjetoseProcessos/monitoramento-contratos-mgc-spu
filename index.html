@@ -166,7 +166,7 @@ details.ob > summary:hover { background: var(--azul-suave); }
 .oc:nth-child(odd) { background: var(--cinza); }
 @media (max-width: 760px) { details.ob > summary { grid-template-columns: 22px 1fr; } details.ob > summary > :nth-child(n+3) { grid-column: 2; } .oc { grid-template-columns: 1fr 1fr; } }
 
-/* Itens de lista (tarefas, lembretes, comunicações) */
+/* Itens de lista (tarefas, lembretes, cobranças) */
 .item { --tc: var(--azul); display: flex; gap: 12px; padding: 10px 12px; border: 1px solid var(--cinza-2); border-left: 5px solid var(--tc); border-radius: 6px; margin-bottom: 8px; background: #fff; }
 .item.vermelho { --tc: var(--vermelho); background: color-mix(in srgb, var(--vermelho) 5%, #fff); }
 .item.laranja { --tc: var(--laranja); } .item.amarelo { --tc: #d4a400; } .item.verde { --tc: var(--verde); } .item.cinza { --tc: #aaa; }
@@ -215,7 +215,6 @@ dialog::backdrop { background: rgba(7,29,65,.55); }
 .hist { list-style: none; margin: 0; padding: 0; font-size: 13px; }
 .hist li { padding: 5px 0; border-bottom: 1px dashed var(--cinza-2); display: flex; gap: 10px; }
 .hist li time { color: var(--suave); white-space: nowrap; min-width: 80px; }
-.email { border: 1px solid var(--cinza-2); border-radius: 6px; background: var(--cinza); padding: 10px 12px; font-size: 13px; white-space: pre-wrap; }
 
 .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: var(--azul-escuro); color: #fff; padding: 10px 18px; border-radius: 6px; font-size: 14px; box-shadow: 0 6px 20px rgba(0,0,0,.3); z-index: 50; }
 .base { background: var(--azul-escuro); color: #fff; padding: 26px 40px; font-size: 12px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
@@ -339,6 +338,7 @@ const iniciais = id => (pessoa(id)?.nome || "?").split(" ").filter(w => w.length
    ================================================================ */
 function gerarDados() {
   const r = rng(20261116);
+  const r2 = rng(6);
   const pick = a => a[Math.floor(r() * a.length)];
   const int = (a, b) => a + Math.floor(r() * (b - a + 1));
   const PRENOMES = ["Mariana", "Roberto", "Luciana", "Fernando", "Patrícia", "Gustavo", "Renata", "Marcelo", "Juliana", "Ricardo", "Simone", "André", "Cristina", "Paulo", "Tatiana", "Eduardo"];
@@ -412,15 +412,14 @@ function gerarDados() {
     if ([9, 30].includes(i) && vig) inicio = addD(addM(HOJE_S, -vig), -int(20, 80));
 
     const rep = `${pick(PRENOMES)} ${pick(SOBRENOMES)}`;
-    const dom = pf ? "email.exemplo.br" : slug(nome.split("—")[0]).slice(0, 18) + ".exemplo.br";
     const c = {
       id, numero: `0200.PR.${pad(int(1000, 99999)).padStart(6, "0")}/${inicio.slice(0, 4)}`,
       outorgado: out, tipo, doc: pf ? `***.${int(100, 999)}.${int(100, 999)}-**` : `${int(10, 99)}.${int(100, 999)}.${int(100, 999)}/0001-${int(10, 99)}`,
-      rep, repEmail: `${slug(rep.split(" ")[0])}.${slug(rep.split(" ")[1])}@${dom}`,
+      rep,
       mun, rip: `${MUNS[mun]}.${String(int(1, 99999)).padStart(5, "0")}.${int(100, 999)}-${int(0, 9)}`,
       instr, inicio, vig, fin, sei: `10154.${int(100000, 999999)}/${inicio.slice(0, 4)}-${int(10, 99)}`,
       resp: r() < 0.88 ? pick(["bruno", "carla", "diego", "elisa"]) : null,
-      obs: [], cump: {}, agenda: [], tarefas: [], notas: [], coms: [], hist: [],
+      obs: [], cump: {}, agenda: [], tarefas: [], notas: [], hist: [],
     };
     // obrigações, pelas regras de aplicação da planilha
     const imp = r() < 0.35 && edif ? pick([12, 18, 24]) : 0;
@@ -428,6 +427,7 @@ function gerarDados() {
     if (instr.startsWith("Acordo")) { add("ACT001", 18); add("ACT002", 24); add("ACT003", 36); add("ACT004", 48); }
     else {
       if (imp) add("FIN001", imp, { desc: "Implantar: " + fin.toLowerCase() + "." });
+      if (imp && inicio >= "2021-01-01") add("FIN002", 6, { desc: "Relatório semestral de execução do cronograma de implantação." });
       add("FIN003", instr === "Entrega" ? 36 : 12 + imp);
       if (instr === "Entrega") add("FIN004", 24);
       if (edif) {
@@ -447,7 +447,7 @@ function gerarDados() {
     if (vigente && r() < 0.72) {
       const tem = cod => c.obs.find(o => o.cod === cod);
       const usados = new Set();
-      const novaAg = (nome, mes, dia, obs, desde) => { obs.forEach(o => usados.add(o)); c.agenda.push({ id: `${id}a${c.agenda.length + 1}`, nome, versoes: [{ desde, mes, dia }], obs, notifs: {} }); };
+      const novaAg = (nome, mes, dia, obs, desde) => { obs.forEach(o => usados.add(o)); c.agenda.push({ id: `${id}a${c.agenda.length + 1}`, nome, versoes: [{ desde, mes, dia }], obs, cobradas: {} }); };
       const piso = c.inicio > "2025-01-01" ? c.inicio : "2025-01-01";
       if (tem("QIT001")) { const mes = pick([0, 1]), dia = int(10, 20); novaAg("Tributos e certidões", mes, dia, [tem("QIT001").id], proxMD(mes, dia, piso)); }
       if (tem("SEG001") && r() < 0.85) { const ob = tem("SEG001"); const p = addM(c.inicio, ob.prazo); const d = dt(p); novaAg("Seguro", d.getMonth(), d.getDate(), [ob.id], p); }
@@ -457,28 +457,28 @@ function gerarDados() {
     // cumprimentos passados — alguns outorgados são piores pagadores que outros
     const zelo = r() < 0.25 ? 0.55 : 0.94;
     for (const ob of c.obs) for (const oc of ocorrencias(c, ob)) {
-      if (oc.venc < HOJE_S && r() < (oc.venc < "2024-01-01" ? Math.max(zelo, 0.97) : zelo)) {
-        const d = addD(oc.venc, int(-25, 20));
-        c.cump[oc.k] = { data: d < HOJE_S ? d : HOJE_S, doc: `SEI ${int(40000000, 59999999)}`, quem: c.resp || "ana", obs: "" };
+      const g = ob.cod === "FIN002" ? r2 : r; // a semestral tem sorteio próprio, para não mexer no resto dos dados de exemplo
+      if (oc.venc < HOJE_S && g() < (oc.venc < "2024-01-01" || g === r2 ? Math.max(zelo, 0.97) : zelo)) {
+        const d = addD(oc.venc, -25 + Math.floor(g() * 46));
+        c.cump[oc.k] = { data: d < HOJE_S ? d : HOJE_S, doc: `SEI ${40000000 + Math.floor(g() * 20000000)}`, quem: c.resp || "ana", obs: "" };
       }
     }
     c.hist.push({ quando: inicio, quem: "MGC", o: "Contrato incluído no MGC (versão 1)" });
     contratos.push(c);
   });
 
-  // cobranças agendadas de 2026 que já passaram: a maioria foi notificada
+  // cobranças agendadas que já passaram: a maioria foi feita (por fora) e registrada aqui
   for (const c of contratos) for (const ag of c.agenda) {
     c.hist.push({ quando: addD(HOJE_S, -int(200, 400)), quem: c.resp || "ana", o: `definiu a data de cobrança “${ag.nome}”: todo ${ag.versoes[0].dia} de ${MESES_L[ag.versoes[0].mes]}` });
-    for (const d of datasAg(ag, HOJE_S)) {
+    for (const d of datasAg(ag, HOJE_S, temSemi(c, ag))) {
       if (d < "2025-01-01" || d >= HOJE_S || !itensInst(c, ag, d).length || r() > 0.75) continue;
-      const quem = c.resp || "ana", data = addD(d, -int(0, 7));
-      ag.notifs[d] = { data, prazo: 30, quem };
-      c.coms.push({ id: `m${ag.id}${d}`, data, modelo: "agenda", assunto: `Cobrança de ${ag.nome.toLowerCase()} (${br(d)}) — contrato ${c.numero}`, para: c.repEmail, corpo: "(texto da notificação)", prazo: 30, quem, resposta: null });
-      c.hist.push({ quando: data, quem, o: `notificou o outorgado da cobrança “${ag.nome}” de ${br(d)}` });
+      const quem = c.resp || "ana", data = addD(d, -int(0, 7)), meio = r() < 0.7 ? "ofício pelo SEI" : "e-mail institucional", doc = meio.startsWith("ofício") ? `SEI ${int(40000000, 59999999)}` : "";
+      ag.cobradas[d] = { data, meio, doc, prazo: 30, quem };
+      c.hist.push({ quando: data, quem, o: `registrou a cobrança “${ag.nome}” de ${br(d)}, feita por ${meio}${doc ? ` (${doc})` : ""}` });
     }
   }
 
-  // tarefas, lembretes e comunicações de exemplo
+  // tarefas e lembretes de exemplo
   const T = (ci, titulo, resp, prazo, criada, mexido, extra = {}) => {
     const c = contratos[ci];
     c.tarefas.push({ id: "t" + (c.tarefas.length + 1) + c.id, titulo, desc: extra.desc || "", resp, criador: extra.criador || "ana", prazo, criada, mexido, estado: extra.estado || "aberta", andamento: extra.andamento || null, entregue: extra.entregue || "", coment: extra.coment || [], hist: [{ quando: criada, quem: extra.criador || "ana", o: `criou a tarefa para ${nomeCurto(resp)}` }] });
@@ -505,15 +505,13 @@ function gerarDados() {
   const N = (ci, texto, lembrar, quem, quandoN) => contratos[ci].notas.push({ id: "n" + contratos[ci].notas.length + contratos[ci].id, texto, lembrar, quem, quando: quandoN, feito: false });
   N(14, "Porto pediu reunião para explicar a metodologia do relatório de receitas.", addD(HOJE_S, 2), resp(14), addD(HOJE_S, -5));
   N(9, "Gestor da Justiça Federal mudou — novo contato é a diretora de administração.", null, resp(9), addD(HOJE_S, -15));
-  N(28, "Ligar para a cooperativa antes de notificar formalmente.", addD(HOJE_S, -1), resp(28), addD(HOJE_S, -7));
+  N(28, "Ligar para a cooperativa antes de mandar o ofício de cobrança.", addD(HOJE_S, -1), resp(28), addD(HOJE_S, -7));
   N(5, "Ratificação: separar fotos da última vistoria.", addD(HOJE_S, 0), resp(5), addD(HOJE_S, -2));
   N(20, "Cartório de Foz pediu certidão atualizada da União.", null, resp(20), addD(HOJE_S, -40));
   N(3, "Outorgado sinalizou por telefone que quer renovar.", addD(HOJE_S, 6), resp(3), addD(HOJE_S, -1));
 
-  contratos[28].coms.push({ id: "mx1", data: addD(HOJE_S, -30), modelo: "vencida", assunto: `Obrigação vencida — contrato ${contratos[28].numero}`, para: contratos[28].repEmail, corpo: "(texto da notificação)", prazo: 15, quem: resp(28), resposta: null });
-  contratos[0].coms.push({ id: "mx2", data: addD(HOJE_S, -50), modelo: "livre", assunto: "Agendamento de vistoria", para: contratos[0].repEmail, corpo: "(texto)", prazo: 10, quem: resp(0), resposta: { data: addD(HOJE_S, -46), texto: "Confirmamos a vistoria para o dia 20." } });
 
-  return { v: 4, ord: { k: "sit", d: 1 }, eu: "ana", contratos, view: "contratos", sel: null, aba: "obrigacoes", f: { q: "", mun: "", tipo: "", instr: "", sit: "", resp: "", ag: "" }, abertos: false, pag: 1, marcados: [], ano: 2027, mes: 0, eqPessoa: "" };
+  return { v: 5, ord: { k: "sit", d: 1 }, eu: "ana", contratos, view: "contratos", sel: null, aba: "obrigacoes", f: { q: "", mun: "", tipo: "", instr: "", sit: "", resp: "", ag: "" }, abertos: false, pag: 1, marcados: [], ano: 2027, mes: 0, eqPessoa: "" };
 }
 
 /* ================================================================
@@ -527,21 +525,26 @@ const dataMD = (y, mes, dia) => `${y}-${pad(mes + 1)}-${pad(Math.min(dia, new Da
 function proxMD(mes, dia, de) { const y = +de.slice(0, 4); const d = dataMD(y, mes, dia); return d >= de ? d : dataMD(y + 1, mes, dia); }
 
 /* Data de cobrança: um dia do ano, fixo, que reúne obrigações do contrato (ex.: tributos em janeiro, seguro no aniversário da apólice).
-   Repete todo ano. Se o dia muda, abre-se uma nova "versão" valendo dali em diante — as datas passadas não se mexem. */
-function datasAg(ag, ate) {
+   Repete todo ano. Se o dia muda, abre-se uma nova "versão" valendo dali em diante — as datas passadas não se mexem.
+   Obrigação semestral: escolhida a data, a segunda do ano é seis meses depois (março → setembro). semi = incluir essas datas. */
+function datasAg(ag, ate, semi) {
   const out = [], vs = ag.versoes;
   vs.forEach((v, i) => {
     const fimV = vs[i + 1]?.desde || "9999-12-31";
-    for (let y = +v.desde.slice(0, 4); y < 2200; y++) { const d = dataMD(y, v.mes, v.dia); if (d > ate || d >= fimV) break; if (d >= v.desde) out.push(d); }
+    for (let y = +v.desde.slice(0, 4); y < 2200; y++) {
+      const d = dataMD(y, v.mes, v.dia); if (d > ate || d >= fimV) break;
+      if (d >= v.desde) { out.push(d); if (semi) { const m = dataMD(y + (v.mes + 6 > 11 ? 1 : 0), (v.mes + 6) % 12, v.dia); if (m <= ate && m < fimV) out.push(m); } }
+    }
   });
-  return out;
+  return out.sort();
 }
+const temSemi = (c, ag) => ag.obs.some(id => c.obs.find(o => o.id === id)?.per === 6);
 const agDe = (c, ob) => c.agenda.find(a => a.obs.includes(ob.id));
 const versaoAtual = ag => ag.versoes[ag.versoes.length - 1];
-const rotAg = ag => { const v = versaoAtual(ag); return `todo ${v.dia} de ${MESES_L[v.mes]}`; };
+const rotAg = (ag, c) => { const v = versaoAtual(ag); return `todo ${v.dia} de ${MESES_L[v.mes]}${c && temSemi(c, ag) ? ` (semestrais também em ${v.dia} de ${MESES_L[(v.mes + 6) % 12]})` : ""}`; };
 function mudarData(ag, mes, dia) {
-  const fut = Object.keys(ag.notifs).find(d => d >= HOJE_S);
-  if (fut) return `A cobrança de ${br(fut)} já foi notificada; mude o dia depois dela.`;
+  const fut = Object.keys(ag.cobradas).find(d => d >= HOJE_S);
+  if (fut) return `A cobrança de ${br(fut)} já foi feita; mude o dia depois dela.`;
   const v = versaoAtual(ag);
   if (v.desde >= HOJE_S) { v.mes = mes; v.dia = dia; if (ag.versoes.length === 1) v.desde = proxMD(mes, dia, HOJE_S); }
   else ag.versoes.push({ desde: HOJE_S, mes, dia });
@@ -550,7 +553,7 @@ function mudarData(ag, mes, dia) {
 
 /* Ocorrências de uma obrigação.
    Sem data de cobrança: primeiro vencimento = início do contrato + prazo (meses); se recorrente, repete pela periodicidade até o fim da vigência.
-   Com data de cobrança: a partir da primeira data, a obrigação vence nesse dia, todo ano.
+   Com data de cobrança: a partir da primeira data, a obrigação vence nesse dia, todo ano (semestral: nesse dia e seis meses depois).
      - recorrente: não antes do primeiro vencimento do contrato;
      - única: passa a ser conferida todo ano (ex.: quitação de tributos). */
 function ocorrencias(c, ob) {
@@ -562,8 +565,9 @@ function ocorrencias(c, ob) {
   if (!ag) return contratuais;
   const desde = ag.versoes[0].desde;
   const doAg = d => ({ k: `${ob.id}@${d}`, venc: d, ag: ag.id });
-  if (ob.rec && primeiro >= desde) return [contratuais[0], ...datasAg(ag, lim).filter(d => d > addM(primeiro, 6)).map(doAg)];
-  return [...contratuais.filter(o => o.venc < desde), ...datasAg(ag, lim).map(doAg)];
+  const datas = datasAg(ag, lim, ob.per === 6);
+  if (ob.rec && primeiro >= desde) return [contratuais[0], ...datas.filter(d => d > addM(primeiro, ob.per / 2)).map(doAg)];
+  return [...contratuais.filter(o => o.venc < desde), ...datas.map(doAg)];
 }
 function sitOc(c, oc) {
   if (c.cump[oc.k]) return { s: "cumprida", rot: "Cumprida", cor: "verde" };
@@ -614,14 +618,14 @@ function itensInst(c, ag, d) {
 const AG_EST = {
   planejado: { rot: "Agendada", cor: "azul" },
   proximo: { rot: "Cobrar em breve", cor: "amarelo" },
-  atrasado: { rot: "Cobrança não enviada", cor: "vermelho" },
+  atrasado: { rot: "Cobrança não feita", cor: "vermelho" },
   aguardando: { rot: "Aguardando comprovação", cor: "azul" },
-  semresposta: { rot: "Sem resposta no prazo", cor: "vermelho" },
+  semresposta: { rot: "Prazo de resposta vencido", cor: "vermelho" },
   concluido: { rot: "Concluída", cor: "verde" },
   nada: { rot: "Nada pendente", cor: "cinza" },
 };
 function estInst(c, ag, d) {
-  const itens = itensInst(c, ag, d), pend = itens.filter(i => !c.cump[i.oc.k]), n = ag.notifs[d];
+  const itens = itensInst(c, ag, d), pend = itens.filter(i => !c.cump[i.oc.k]), n = ag.cobradas[d];
   if (!itens.length) return "nada";
   if (n) { if (!pend.length) return "concluido"; return dias(addD(n.data, n.prazo || 30)) < 0 ? "semresposta" : "aguardando"; }
   if (!pend.length) return d < HOJE_S ? "concluido" : "nada";
@@ -648,10 +652,10 @@ const pedidoPendente = t => t.andamento && t.andamento.pedido && !t.andamento.re
 /* ================================================================
    Estado
    ================================================================ */
-const CHAVE = "mgc-monitoramento-v4";
+const CHAVE = "mgc-monitoramento-v5";
 let S;
 try { S = JSON.parse(localStorage.getItem(CHAVE)); } catch (e) { S = null; }
-if (!S || S.v !== 4) S = gerarDados();
+if (!S || S.v !== 5) S = gerarDados();
 function gravar() { try { localStorage.setItem(CHAVE, JSON.stringify(S)); } catch (e) { } }
 const eu = () => S.eu;
 const souChefe = () => pessoa(S.eu)?.papel === "chefe";
@@ -698,7 +702,7 @@ function pendenciasMinhas() {
 }
 
 /* ---------------- Grid de contratos ---------------- */
-function proxAgenda(c) { let m = null; for (const ag of c.agenda) { const d = datasAg(ag, addM(HOJE_S, 24)).find(x => x >= HOJE_S); if (d && (!m || d < m)) m = d; } return m; }
+function proxAgenda(c) { let m = null; for (const ag of c.agenda) { const d = datasAg(ag, addM(HOJE_S, 24), temSemi(c, ag)).find(x => x >= HOJE_S); if (d && (!m || d < m)) m = d; } return m; }
 const ORD = {
   contrato: c => c.numero.slice(-4) + c.numero,
   outorgado: c => c.outorgado.toLowerCase(),
@@ -828,13 +832,12 @@ function vContrato() {
   const c = contrato(S.sel), r = resumo(c), s = SIT[r.sit];
   const aba = S.aba;
   const nAg = c.agenda.length, nT = r.tAbertas.length, nN = c.notas.filter(n => !n.feito).length;
-  const abas = [["obrigacoes", `Obrigações <span class="cont ${r.venc.length ? "" : "az"}">${r.venc.length || c.obs.length}</span>`], ["agenda", `Datas de cobrança${nAg ? ` <span class="cont az">${nAg}</span>` : ""}`], ["tarefas", `Tarefas${nT ? ` <span class="cont az">${nT}</span>` : ""}`], ["notas", `Lembretes e anotações${nN ? ` <span class="cont az">${nN}</span>` : ""}`], ["coms", `Comunicações com o outorgado${c.coms.length ? ` <span class="cont az">${c.coms.length}</span>` : ""}`], ["hist", "Histórico"]];
+  const abas = [["obrigacoes", `Obrigações <span class="cont ${r.venc.length ? "" : "az"}">${r.venc.length || c.obs.length}</span>`], ["agenda", `Datas de cobrança${nAg ? ` <span class="cont az">${nAg}</span>` : ""}`], ["tarefas", `Tarefas${nT ? ` <span class="cont az">${nT}</span>` : ""}`], ["notas", `Lembretes e anotações${nN ? ` <span class="cont az">${nN}</span>` : ""}`], ["hist", "Histórico"]];
   let conteudo = "";
   if (aba === "obrigacoes") conteudo = abaObrigacoes(c);
   else if (aba === "agenda") conteudo = abaAgenda(c);
   else if (aba === "tarefas") conteudo = abaTarefas(c);
   else if (aba === "notas") conteudo = abaNotas(c);
-  else if (aba === "coms") conteudo = abaComs(c);
   else conteudo = `<ul class="hist">${[...c.hist].sort((a, b) => b.quando.localeCompare(a.quando)).map(h => `<li><time>${br(h.quando)}</time><span><b>${esc(h.quem === "MGC" ? "MGC" : nomeCurto(h.quem))}</b> — ${esc(h.o)}</span></li>`).join("")}</ul>`;
   return `
   <div class="acoes-linha" style="justify-content:space-between;margin-bottom:14px">
@@ -842,7 +845,6 @@ function vContrato() {
     <div class="acoes-linha">
       <button class="bt peq" data-act="dlg-nota" data-id="${c.id}">+ Lembrete ou anotação</button>
       <button class="bt peq" data-act="dlg-tarefa" data-id="${c.id}">+ Tarefa</button>
-      <button class="bt pri peq" data-act="dlg-notificar" data-id="${c.id}" data-modelo="${r.venc.length ? "vencida" : r.sit === "renovar" || r.sit === "vigvencida" ? "vigencia" : "livre"}">✉ Notificar outorgado</button>
     </div>
   </div>
   <section class="bloco">
@@ -852,7 +854,7 @@ function vContrato() {
       ${r.sit === "renovar" ? `<div class="aviso">A vigência termina em ${br(r.fim)} (${quando(r.dFim)}). Avalie a renovação com o outorgado.</div>` : ""}
       <div class="dados">
         <div><b>Outorgado</b>${esc(c.outorgado)}<br><span class="mini">${esc(TIPOS_OUT[c.tipo])} · ${esc(c.doc)}</span></div>
-        <div><b>Representante da entidade (ponto focal)</b>${esc(c.rep)}<br><span class="mini">${esc(c.repEmail)}</span></div>
+        <div><b>Representante da entidade (ponto focal)</b>${esc(c.rep)}</div>
         <div><b>Imóvel</b>${esc(c.mun)}/PR<br><span class="mini mono">RIP ${esc(c.rip)}</span></div>
         <div><b>Processo SEI</b><span class="mono">${esc(c.sei)}</span></div>
         <div><b>Data de início do contrato</b>${br(c.inicio)}</div>
@@ -897,7 +899,7 @@ function abaObrigacoes(c) {
             <span><span class="tag ${s.cor}">${s.rot}</span></span>
             <span class="mini" style="display:inline">${cp ? `Cumprida em ${br(cp.data)} · ${esc(cp.doc)}${cp.obs ? ` · ${esc(cp.obs)}` : ""} · por ${esc(nomeCurto(cp.quem))}` : ""}</span>
             <span class="acoes-linha">${cp ? `<button class="lk perigo" data-act="desfazer-cump" data-id="${c.id}" data-k="${oc.k}">Desfazer</button>` :
-              `${s.s === "vencida" || s.s === "avencer" ? `<button class="lk" data-act="dlg-notificar" data-id="${c.id}" data-modelo="${s.s === "vencida" ? "vencida" : "cobranca"}" data-ob="${ob.id}">Cobrar</button>` : ""}
+              `${s.s === "vencida" || s.s === "avencer" ? `<button class="lk" data-act="dlg-tarefa" data-id="${c.id}" data-titulo="Cobrar “${esc(CATS[ob.cod].nome)}” (venc. ${br(oc.venc)})">Criar tarefa</button>` : ""}
                <button class="lk" data-act="dlg-cump" data-id="${c.id}" data-k="${oc.k}">Registrar cumprimento</button>`}</span>
           </div>`;
         }).join("")}
@@ -919,25 +921,25 @@ function abaAgenda(c) {
   return `<section class="bloco"><div class="bloco-cab"><h2>Datas de cobrança <small>cada uma se repete todo ano e reúne as obrigações que você escolher</small></h2>
       <button class="bt pri peq" data-act="dlg-agenda" data-id="${c.id}">+ Nova data de cobrança</button></div>
     <div class="bloco-corpo">
-      <div class="nota-proto"><b>Como funciona:</b> você escolhe um dia do ano para cobrar um grupo de obrigações — por exemplo, <i>tributos e certidões</i> sempre em janeiro, quando sai a certidão da prefeitura, e <i>seguro</i> no aniversário da primeira apólice. Daí em diante essas obrigações vencem nesse dia, todo ano. As que não entram em nenhuma data seguem o prazo do contrato.</div>
+      <div class="nota-proto"><b>Como funciona:</b> você escolhe um dia do ano para cobrar um grupo de obrigações — por exemplo, <i>tributos e certidões</i> sempre em janeiro, quando sai a certidão da prefeitura, e <i>seguro</i> no aniversário da primeira apólice. Daí em diante essas obrigações vencem nesse dia, todo ano; as semestrais vencem nesse dia e seis meses depois. As que não entram em nenhuma data seguem o prazo do contrato.<br><b>A cobrança é feita por fora</b> (ofício, e-mail institucional, telefone): a ferramenta não manda nada ao outorgado. Aqui se registra que a cobrança foi feita, para controlar o prazo de resposta.</div>
       ${recSoltas.length ? `<div class="aviso">${plural(recSoltas.length, "obrigação recorrente ainda não tem", "obrigações recorrentes ainda não têm")} data de cobrança: ${recSoltas.map(o => esc(CATS[o.cod].nome)).join("; ")}.</div>` : ""}
       ${c.agenda.map(ag => {
         const v = versaoAtual(ag);
-        const todas = datasAg(ag, lim);
+        const todas = datasAg(ag, lim, temSemi(c, ag));
         const passadas = todas.filter(d => d < HOJE_S && d >= addM(HOJE_S, -18)).slice(-2);
         const prox = todas.filter(d => d >= HOJE_S).slice(0, 1);
         const temPassado = todas.some(d => d < HOJE_S);
         return `<div class="item">
           <div class="corpo">
-            <b style="font-size:16px">${esc(ag.nome)}</b> — <b>${rotAg(ag)}</b>
+            <b style="font-size:16px">${esc(ag.nome)}</b> — <b>${rotAg(ag, c)}</b>
             <div class="meta"><span>primeira cobrança em ${br(ag.versoes[0].desde)}</span>${ag.versoes.length > 1 ? `<span>antes era ${ag.versoes.slice(0, -1).map(x => `${x.dia} de ${MESES_L[x.mes]}`).join(", depois ")}; mudou em ${br(v.desde)}</span>` : ""}</div>
-            <div class="chips" style="margin:6px 0 0">${ag.obs.map(id => { const ob = c.obs.find(o => o.id === id); return ob ? `<span class="chip" style="padding:3px 10px">${esc(CATS[ob.cod].nome)}${ob.rec ? "" : " · conferida todo ano"}</span>` : ""; }).join("")}</div>
+            <div class="chips" style="margin:6px 0 0">${ag.obs.map(id => { const ob = c.obs.find(o => o.id === id); return ob ? `<span class="chip" style="padding:3px 10px">${esc(CATS[ob.cod].nome)}${!ob.rec ? " · conferida todo ano" : ob.per === 6 ? ` · semestral, também em ${MESES_L[(v.mes + 6) % 12]}` : ""}</span>` : ""; }).join("")}</div>
             <div class="tabela" style="margin-top:8px"><table><tbody>${[...passadas, ...prox].map(d => {
-              const e = estInst(c, ag, d), E = AG_EST[e], itens = itensInst(c, ag, d), n = ag.notifs[d];
+              const e = estInst(c, ag, d), E = AG_EST[e], itens = itensInst(c, ag, d), n = ag.cobradas[d];
               const feitas = itens.filter(i => c.cump[i.oc.k]).length;
               return `<tr><td style="white-space:nowrap">${br(d)}</td><td><span class="tag ${E.cor}">${E.rot}</span></td>
-                <td><span class="mini">${itens.length ? `${feitas} de ${itens.length} cumprida${itens.length > 1 ? "s" : ""}` : "nenhuma obrigação vence nesta data"}${n ? ` · notificado em ${br(n.data)}, prazo até ${br(addD(n.data, n.prazo))}` : ""}</span></td>
-                <td style="text-align:right;white-space:nowrap">${!n && ["proximo", "atrasado", "planejado"].includes(e) ? `<button class="lk" data-act="dlg-notificar" data-id="${c.id}" data-modelo="agenda" data-ag="${ag.id}" data-d="${d}">✉ Notificar</button>` : ""}${e === "semresposta" ? `<button class="lk perigo" data-act="dlg-notificar" data-id="${c.id}" data-modelo="reiteracao" data-ag="${ag.id}" data-d="${d}">Reiterar</button>` : ""}</td></tr>`;
+                <td><span class="mini">${itens.length ? `${feitas} de ${itens.length} cumprida${itens.length > 1 ? "s" : ""}` : "nenhuma obrigação vence nesta data"}${n ? ` · cobrada em ${br(n.data)} por ${esc(n.meio)}${n.doc ? ` (${esc(n.doc)})` : ""}, resposta até ${br(addD(n.data, n.prazo))}` : ""}</span></td>
+                <td style="text-align:right;white-space:nowrap">${!n && ["proximo", "atrasado"].includes(e) ? `<button class="lk" data-act="dlg-cobranca" data-id="${c.id}" data-ag="${ag.id}" data-d="${d}">Registrar cobrança</button>` : ""}${e === "semresposta" ? `<button class="lk perigo" data-act="dlg-cobranca" data-id="${c.id}" data-ag="${ag.id}" data-d="${d}">Registrar nova cobrança</button>` : ""}</td></tr>`;
             }).join("") || `<tr><td class="vazio">Nenhuma data dentro da vigência.</td></tr>`}</tbody></table></div>
           </div>
           <div class="lado"><button class="lk" data-act="dlg-agenda" data-id="${c.id}" data-ag="${ag.id}">Alterar</button>${!temPassado ? `<button class="lk perigo" data-act="ag-excluir" data-id="${c.id}" data-ag="${ag.id}">Excluir</button>` : ""}</div>
@@ -989,42 +991,16 @@ function itemNota(n, c, comContrato) {
   </div>`;
 }
 
-const MODELOS = {
-  cobranca: "Cobrança de obrigação",
-  vencida: "Notificação de obrigação vencida",
-  agenda: "Cobrança da data agendada",
-  reiteracao: "Reiteração de cobrança",
-  vigencia: "Aviso de fim de vigência",
-  livre: "Mensagem livre",
-};
-function abaComs(c) {
-  const ms = [...c.coms].sort((a, b) => b.data.localeCompare(a.data));
-  return `<section class="bloco"><div class="bloco-cab"><h2>Comunicações com o outorgado</h2><button class="bt pri peq" data-act="dlg-notificar" data-id="${c.id}" data-modelo="livre">✉ Nova comunicação</button></div>
-    <div class="bloco-corpo">
-      <div class="nota-proto"><b>Ligação com o MGC atual:</b> o contrato já tem o botão “Enviar E-mail”, o cadastro “Modelo de E-mail” e o “Livro de Ocorrências”. A proposta é que o envio parta daqui, com modelo, prazo de resposta e registro da resposta — tudo no histórico do contrato.</div>
-      ${ms.map(m => {
-        const vencido = !m.resposta && dias(addD(m.data, m.prazo)) < 0;
-        return `<div class="item ${m.resposta ? "verde" : vencido ? "vermelho" : ""}">
-          <div class="corpo"><b>${esc(m.assunto)}</b>
-            <div class="meta"><span>${esc(MODELOS[m.modelo] || m.modelo)}</span><span>enviado ${br(m.data)} por ${esc(nomeCurto(m.quem))}</span><span>para ${esc(m.para)}</span><span>prazo de resposta: ${m.prazo} dias (${br(addD(m.data, m.prazo))})</span></div>
-            ${m.resposta ? `<div class="resposta"><b>Resposta do outorgado (${br(m.resposta.data)}):</b> ${esc(m.resposta.texto)}</div>` : vencido ? `<div class="meta" style="color:var(--vermelho);font-weight:600">Prazo de resposta esgotado sem retorno</div>` : `<div class="meta">Aguardando resposta</div>`}
-          </div>
-          <div class="lado">${!m.resposta ? `<button class="lk" data-act="dlg-resposta" data-id="${c.id}" data-m="${m.id}">Registrar resposta</button>` : ""}</div>
-        </div>`;
-      }).join("") || `<p class="vazio">Nenhuma comunicação registrada.</p>`}
-    </div></section>`;
-}
-
 /* ---------------- Cronograma de cobrança ---------------- */
 function instanciasDoAno(ano) {
   const out = [], ate = `${ano}-12-31`;
-  for (const c of S.contratos) { const f = fimVig(c); for (const ag of c.agenda) for (const d of datasAg(ag, ate)) if (d.startsWith(String(ano)) && (!f || d <= f)) out.push({ c, ag, d }); }
+  for (const c of S.contratos) { const f = fimVig(c); for (const ag of c.agenda) for (const d of datasAg(ag, ate, temSemi(c, ag))) if (d.startsWith(String(ano)) && (!f || d <= f)) out.push({ c, ag, d }); }
   return out;
 }
 /* Sugestão de dia: o mês com menos datas de cobrança na UF e, nele, a semana mais vazia. */
 function sugerirMD(ignorar) {
   const carga = Array.from({ length: 12 }, () => [0, 0, 0, 0]);
-  for (const c of S.contratos) { const f = fimVig(c); if (f && f < HOJE_S) continue; for (const ag of c.agenda) { if (ag === ignorar) continue; const v = versaoAtual(ag); carga[v.mes][Math.min(3, Math.floor((v.dia - 1) / 7))]++; } }
+  for (const c of S.contratos) { const f = fimVig(c); if (f && f < HOJE_S) continue; for (const ag of c.agenda) { if (ag === ignorar) continue; const v = versaoAtual(ag), w = Math.min(3, Math.floor((v.dia - 1) / 7)); carga[v.mes][w]++; if (temSemi(c, ag)) carga[(v.mes + 6) % 12][w]++; } }
   const soma = m => carga[m].reduce((a, b) => a + b, 0);
   let m = 0; for (let i = 1; i < 12; i++) if (soma(i) < soma(m)) m = i;
   const w = carga[m].indexOf(Math.min(...carga[m]));
@@ -1078,10 +1054,10 @@ function vCronograma() {
           ${sel.length ? `<div class="tabela"><table><thead><tr><th>Dia</th><th>Contrato</th><th>Outorgado</th><th>Cobrança</th><th>Obrigações</th><th>Responsável</th><th>Situação</th><th>Mudar o dia</th></tr></thead><tbody>
             ${sel.sort((a, b) => a.d.localeCompare(b.d)).map(({ c, ag, d }) => {
               const E = AG_EST[estInst(c, ag, d)];
-              const travado = d < HOJE_S || ag.notifs[d];
+              const semiInst = dt(d).getMonth() !== versaoAtual(ag).mes, travado = d < HOJE_S || ag.cobradas[d] || semiInst;
               return `<tr class="lin"><td>${br(d).slice(0, 5)}</td><td><button class="lk mono" data-act="abrir" data-id="${c.id}" data-aba="agenda">${esc(c.numero)}</button></td><td>${esc(c.outorgado)}<small>${esc(c.mun)}</small></td>
-                <td>${esc(ag.nome)}<small>${rotAg(ag)}</small></td><td class="num">${itensInst(c, ag, d).length}</td><td>${esc(nomeCurto(c.resp))}</td><td><span class="tag ${E.cor}">${E.rot}</span></td>
-                <td>${travado ? `<span class="mini">${d < HOJE_S ? "já passou" : "já notificada"}</span>` : `<input type="date" value="${d}" data-act="mover" data-id="${c.id}" data-ag="${ag.id}" style="height:32px;width:150px" aria-label="Novo dia de cobrança"><small>vale para os anos seguintes</small>`}</td></tr>`;
+                <td>${esc(ag.nome)}<small>${rotAg(ag, c)}</small></td><td class="num">${itensInst(c, ag, d).length}</td><td>${esc(nomeCurto(c.resp))}</td><td><span class="tag ${E.cor}">${E.rot}</span></td>
+                <td>${travado ? `<span class="mini">${d < HOJE_S ? "já passou" : ag.cobradas[d] ? "já cobrada" : "semestral: segue a data principal"}</span>` : `<input type="date" value="${d}" data-act="mover" data-id="${c.id}" data-ag="${ag.id}" style="height:32px;width:150px" aria-label="Novo dia de cobrança"><small>vale para os anos seguintes</small>`}</td></tr>`;
             }).join("")}</tbody></table></div>` : `<p class="vazio">Nenhuma cobrança neste mês.</p>`}
         </div>
       </section>
@@ -1161,7 +1137,7 @@ function vMesa() {
   for (const c of meus) { const r = resumo(c); for (const v of r.venc) obs.push({ c, ...v, s: "vencida" }); for (const ob of c.obs) for (const oc of ocorrencias(c, ob)) { const s = sitOc(c, oc); if (s.s === "avencer" && s.d <= 30) obs.push({ c, ob, oc, s: "avencer" }); } }
   obs.sort((a, b) => a.oc.venc.localeCompare(b.oc.venc));
   const acoesAg = [];
-  for (const c of meus) for (const ag of c.agenda) for (const d of datasAg(ag, addD(HOJE_S, 30))) { if (d < addD(HOJE_S, -180)) continue; const e = estInst(c, ag, d); if (["proximo", "atrasado", "semresposta"].includes(e)) acoesAg.push({ c, ag, d, e }); }
+  for (const c of meus) for (const ag of c.agenda) for (const d of datasAg(ag, addD(HOJE_S, 30), temSemi(c, ag))) { if (d < addD(HOJE_S, -180)) continue; const e = estInst(c, ag, d); if (["proximo", "atrasado", "semresposta"].includes(e)) acoesAg.push({ c, ag, d, e }); }
   acoesAg.sort((a, b) => a.d.localeCompare(b.d));
   const concl = minhas.filter(x => x.t.estado === "concluida").slice(0, 4);
   return `
@@ -1208,39 +1184,21 @@ function dlgCump(c, k) {
     `<button class="bt" data-act="fechar">Cancelar</button><button class="bt pri" data-act="salvar-cump" data-id="${c.id}" data-k="${k}">Registrar</button>`);
 }
 
-function textoNotif(c, modelo, itens, prazo, ag) {
-  const p = pessoa(S.eu);
-  const lista = itens.map(({ ob, oc }) => `• ${CATS[ob.cod].nome} — vencimento ${br(oc.venc)}${c.cump[oc.k] ? " (já cumprida)" : dias(oc.venc) < 0 ? " (VENCIDA)" : ""}`).join("\n");
-  const cab = `Prezado(a) ${c.rep},\n\n`;
-  const ref = `contrato nº ${c.numero} (${c.instr}), referente ao imóvel RIP ${c.rip}, em ${c.mun}/PR (processo SEI ${c.sei})`;
-  const ass = `\n\nAtenciosamente,\n${p.nome}\n${p.cargo}\nSuperintendência do Patrimônio da União no Paraná`;
-  if (modelo === "agenda") return cab + `Conforme as cláusulas do ${ref}, e a data anual de cobrança “${ag?.nome || ""}” (${ag ? rotAg(ag) : ""}), solicitamos, no prazo de ${prazo} dias, a comprovação das seguintes obrigações:\n\n${lista}\n\nA documentação pode ser enviada em resposta a esta mensagem.` + ass;
-  if (modelo === "reiteracao") return cab + `Reiteramos a notificação anterior referente ao ${ref}. Até esta data não recebemos a comprovação de:\n\n${lista}\n\nSolicitamos o envio em ${prazo} dias. O descumprimento das obrigações pode levar à rescisão do contrato.` + ass;
-  if (modelo === "vencida") return cab + `Constatamos que as obrigações abaixo, previstas no ${ref}, encontram-se vencidas sem comprovação:\n\n${lista}\n\nFica V. Sa. notificado(a) a apresentar a comprovação no prazo de ${prazo} dias, sob pena das medidas previstas no contrato.` + ass;
-  if (modelo === "cobranca") return cab + `Lembramos que se aproxima o vencimento das obrigações abaixo, previstas no ${ref}:\n\n${lista}\n\nSolicitamos o envio da comprovação até o vencimento.` + ass;
-  if (modelo === "vigencia") { const f = fimVig(c); return cab + `Informamos que o ${ref} tem vigência ${f && dias(f) < 0 ? "encerrada em" : "até"} ${br(f)}. Caso haja interesse na prorrogação, pedimos manifestação em ${prazo} dias, com a comprovação da manutenção da finalidade.` + ass; }
-  return cab + `Em referência ao ${ref}:\n\n` + ass;
-}
-function dlgNotificar(c, modelo, obId, agId, d) {
-  const r = resumo(c);
-  let itens = [];
-  const ag = agId ? c.agenda.find(x => x.id === agId) : null;
-  if (ag) itens = itensInst(c, ag, d).filter(i => !c.cump[i.oc.k]);
-  else if (obId) { const ob = c.obs.find(o => o.id === obId); itens = ocorrencias(c, ob).filter(oc => { const s = sitOc(c, oc).s; return s === "vencida" || s === "avencer"; }).map(oc => ({ ob, oc })); }
-  else if (modelo === "vencida") itens = r.venc;
-  const prazo = modelo === "vencida" || modelo === "reiteracao" ? 15 : 30;
-  const assunto = { agenda: `Cobrança de ${(ag?.nome || "").toLowerCase()} (${br(d)}) — contrato ${c.numero}`, reiteracao: `Reiteração — contrato ${c.numero}`, vencida: `Obrigação vencida — contrato ${c.numero}`, cobranca: `Vencimento de obrigação — contrato ${c.numero}`, vigencia: `Vigência do contrato ${c.numero}`, livre: `Contrato ${c.numero}` }[modelo];
-  S._notif = { cid: c.id, ag: agId || null, d: d || null };
-  abrirDlg("Notificar o outorgado", `
+function dlgCobranca(c, agId, d) {
+  const ag = c.agenda.find(x => x.id === agId), n = ag.cobradas[d];
+  const pend = itensInst(c, ag, d).filter(i => !c.cump[i.oc.k]);
+  abrirDlg("Registrar cobrança feita", `
+    <p><b>${esc(ag.nome)}</b> de ${br(d)}<br><span class="mini">Contrato ${esc(c.numero)} — ${esc(c.outorgado)}</span></p>
+    ${n ? `<div class="aviso">Já houve cobrança em ${br(n.data)} (${esc(n.meio)}), com resposta até ${br(addD(n.data, n.prazo))}. Esta nova cobrança substitui o prazo.</div>` : ""}
+    <div class="campo"><span class="rot">O que está sendo cobrado</span><ul style="margin:4px 0 0 18px">${pend.map(i => `<li>${esc(CATS[i.ob.cod].nome)}</li>`).join("") || "<li>nada pendente</li>"}</ul></div>
     <div class="grade">
-      <div class="campo"><label for="nt-modelo">Modelo de e-mail</label><select id="nt-modelo" data-act="trocar-modelo" data-id="${c.id}" data-ag="${agId || ""}" data-d="${d || ""}" data-ob="${obId || ""}">${Object.entries(MODELOS).map(([k, v]) => `<option value="${k}" ${k === modelo ? "selected" : ""} ${k === "agenda" || k === "reiteracao" ? (ag ? "" : "disabled") : ""}>${v}</option>`).join("")}</select><small>vem do cadastro “Modelo de E-mail” do MGC</small></div>
-      <div class="campo"><label for="nt-prazo">Prazo para resposta (dias)</label><input type="number" id="nt-prazo" value="${prazo}" min="1" max="180"></div>
-      <div class="campo larga"><label for="nt-para">Para</label><input type="email" id="nt-para" value="${esc(c.repEmail)}"><small>representante da entidade (ponto focal) — com cópia para o e-mail da unidade de monitoramento</small></div>
-      <div class="campo larga"><label for="nt-assunto">Assunto</label><input type="text" id="nt-assunto" value="${esc(assunto)}"></div>
-      <div class="campo larga"><label for="nt-corpo">Mensagem</label><textarea id="nt-corpo" rows="12">${esc(textoNotif(c, modelo, itens, prazo, ag))}</textarea></div>
+      <div class="campo"><label for="cb-data">Cobrada em</label><input type="date" id="cb-data" value="${HOJE_S}" max="${HOJE_S}"></div>
+      <div class="campo"><label for="cb-meio">Como</label><select id="cb-meio">${["ofício pelo SEI", "e-mail institucional", "telefone", "pessoalmente ou em vistoria"].map(m => `<option>${m}</option>`).join("")}</select></div>
+      <div class="campo"><label for="cb-doc">Documento</label><input type="text" id="cb-doc" placeholder="Nº SEI do ofício (opcional)"></div>
+      <div class="campo"><label for="cb-prazo">Prazo para resposta (dias)</label><input type="number" id="cb-prazo" value="${n ? 15 : 30}" min="1" max="180"></div>
     </div>
-    <div class="nota-proto">No protótipo nada é enviado de fato: a comunicação é registrada no contrato, com o prazo de resposta contando a partir de hoje.</div>`,
-    `<button class="bt" data-act="fechar">Cancelar</button><button class="bt pri" data-act="enviar" data-id="${c.id}">Enviar e registrar</button>`);
+    <div class="nota-proto">A ferramenta não envia nada ao outorgado. A cobrança é feita por fora; aqui fica só o registro, para a equipe saber que foi feita e controlar o prazo de resposta. Quando houver integração com uma ferramenta de mensagens, o envio poderá sair daqui.</div>`,
+    `<button class="bt" data-act="fechar">Cancelar</button><button class="bt pri" data-act="salvar-cobranca" data-id="${c.id}" data-ag="${ag.id}" data-d="${d}">Registrar</button>`);
 }
 
 function dlgAgenda(c, agId) {
@@ -1257,18 +1215,18 @@ function dlgAgenda(c, agId) {
       <div class="campo"><label for="ag-dia">Dia</label><input type="number" id="ag-dia" min="1" max="31" value="${v.dia}"></div>
       <div class="campo larga"><small><button class="lk" data-act="sugerir" data-id="${c.id}" data-ag="${agId || ""}">Sugerir o dia com menos cobranças na UF</button> · ${ag ? "a mudança vale daqui em diante; as cobranças passadas não mudam" : "a primeira cobrança será na próxima vez que esse dia chegar"}</small></div>
     </div>
-    <div class="campo"><span class="rot">Obrigações cobradas nesta data, todo ano</span><small>Obrigação única marcada aqui passa a ser conferida todo ano — útil para quitação de tributos. Cada obrigação só pode estar em uma data.</small>
-      <div class="checks">${c.obs.map(ob => { const outra = emOutra(ob.id); return `<label ${outra ? `style="opacity:.55"` : ""}><input type="checkbox" name="ag-ob" value="${ob.id}" ${marc.has(ob.id) ? "checked" : ""} ${outra ? "disabled" : ""}><span>${esc(CATS[ob.cod].nome)}<span class="mini">${ob.rec ? PER_ROT[ob.per] : "Única"} · prazo ${ob.prazo} meses${outra ? ` · já está em “${esc(outra.nome)}”` : ""}</span></span><span class="mono mini">${ob.cod}</span></label>`; }).join("")}</div></div>`,
+    <div class="campo"><span class="rot">Obrigações cobradas nesta data, todo ano</span><small>Semestral é cobrada nesta data e seis meses depois. Obrigação única marcada aqui passa a ser conferida todo ano — útil para quitação de tributos. Cada obrigação só pode estar em uma data.</small>
+      <div class="checks">${c.obs.map(ob => { const outra = emOutra(ob.id); return `<label ${outra ? `style="opacity:.55"` : ""}><input type="checkbox" name="ag-ob" value="${ob.id}" ${marc.has(ob.id) ? "checked" : ""} ${outra ? "disabled" : ""}><span>${esc(CATS[ob.cod].nome)}<span class="mini">${ob.rec ? (ob.per === 6 ? "Semestral — nesta data e 6 meses depois" : PER_ROT[ob.per]) : "Única"} · prazo ${ob.prazo} meses${outra ? ` · já está em “${esc(outra.nome)}”` : ""}</span></span><span class="mono mini">${ob.cod}</span></label>`; }).join("")}</div></div>`,
     `<button class="bt" data-act="fechar">Cancelar</button><button class="bt pri" data-act="salvar-agenda" data-id="${c.id}" data-ag="${agId || ""}">Salvar</button>`);
 }
 
-function dlgTarefa(cid) {
+function dlgTarefa(cid, titulo) {
   const c = cid ? contrato(cid) : null;
   const opcResp = (souChefe() ? EQUIPE : EQUIPE.filter(p => p.id === S.eu || p.papel === "servidor")).map(p => `<option value="${p.id}" ${p.id === (c?.resp && souChefe() ? c.resp : S.eu) ? "selected" : ""}>${esc(p.nome)}${p.id === S.eu ? " (eu)" : ""}</option>`).join("");
   abrirDlg("Nova tarefa", `
     <p class="mini">Contrato <b class="mono">${esc(c.numero)}</b> — ${esc(c.outorgado)}</p>
     <div class="grade">
-      <div class="campo larga"><label for="tf-titulo">O que precisa ser feito</label><input type="text" id="tf-titulo" placeholder="Ex.: Cobrar a apólice de seguro"></div>
+      <div class="campo larga"><label for="tf-titulo">O que precisa ser feito</label><input type="text" id="tf-titulo" value="${esc(titulo || "")}" placeholder="Ex.: Cobrar a apólice de seguro"></div>
       <div class="campo"><label for="tf-resp">Para quem</label><select id="tf-resp">${opcResp}</select></div>
       <div class="campo"><label for="tf-prazo">Prazo</label><input type="date" id="tf-prazo" value="${addD(HOJE_S, 15)}"></div>
       <div class="campo larga"><label for="tf-desc">Detalhes</label><textarea id="tf-desc" rows="3" placeholder="Opcional"></textarea></div>
@@ -1330,17 +1288,14 @@ document.addEventListener("click", ev => {
     "dlg-cump": () => { dlgCump(c, b.dataset.k); return "x"; },
     "salvar-cump": () => { const doc = val("cp-doc"); if (!doc) { toast("Informe o documento comprobatório"); return "x"; } c.cump[b.dataset.k] = { data: val("cp-data") || HOJE_S, doc, obs: val("cp-obs"), quem: S.eu }; const ob = c.obs.find(o => o.id === b.dataset.k.split("#")[0]); hist(c, `registrou o cumprimento de “${CATS[ob.cod].nome}” (${doc})`); fechar(); toast("Cumprimento registrado"); },
     "desfazer-cump": () => { const ob = c.obs.find(o => o.id === b.dataset.k.split("#")[0]); delete c.cump[b.dataset.k]; hist(c, `desfez o cumprimento de “${CATS[ob.cod].nome}”`); },
-    "dlg-notificar": () => { dlgNotificar(c, b.dataset.modelo || "livre", b.dataset.ob, b.dataset.ag, b.dataset.d); return "x"; },
-    enviar: () => {
-      const n = S._notif, prazo = Math.max(1, +val("nt-prazo") || 30), modelo = val("nt-modelo");
-      const m = { id: "m" + Date.now(), data: HOJE_S, modelo, assunto: val("nt-assunto"), para: val("nt-para"), corpo: val("nt-corpo"), prazo, quem: S.eu, resposta: null };
-      c.coms.push(m);
-      if (n.ag) { const ag = c.agenda.find(x => x.id === n.ag); ag.notifs[n.d] = { data: HOJE_S, prazo, quem: S.eu }; }
-      hist(c, `notificou o outorgado: “${m.assunto}” (prazo de ${prazo} dias)`);
-      fechar(); toast("Comunicação registrada no contrato");
+    "dlg-cobranca": () => { dlgCobranca(c, b.dataset.ag, b.dataset.d); return "x"; },
+    "salvar-cobranca": () => {
+      const ag = c.agenda.find(x => x.id === b.dataset.ag), d = b.dataset.d;
+      const n = { data: val("cb-data") || HOJE_S, meio: val("cb-meio"), doc: val("cb-doc"), prazo: Math.max(1, +val("cb-prazo") || 30), quem: S.eu };
+      const reit = !!ag.cobradas[d]; ag.cobradas[d] = n;
+      hist(c, `registrou ${reit ? "nova " : ""}cobrança “${ag.nome}” de ${br(d)}, feita por ${n.meio}${n.doc ? ` (${n.doc})` : ""}, resposta até ${br(addD(n.data, n.prazo))}`);
+      fechar(); toast("Cobrança registrada");
     },
-    "dlg-resposta": () => { const m = c.coms.find(x => x.id === b.dataset.m); abrirDlg("Registrar resposta do outorgado", `<p><b>${esc(m.assunto)}</b></p><div class="grade"><div class="campo"><label for="rs-data">Recebida em</label><input type="date" id="rs-data" value="${HOJE_S}" max="${HOJE_S}"></div><div class="campo larga"><label for="rs-texto">Resumo da resposta</label><textarea id="rs-texto" rows="3"></textarea></div></div><p class="mini">Se vierem comprovantes, registre o cumprimento de cada obrigação na aba Obrigações.</p>`, `<button class="bt" data-act="fechar">Cancelar</button><button class="bt pri" data-act="salvar-resposta" data-id="${c.id}" data-m="${m.id}">Registrar</button>`); return "x"; },
-    "salvar-resposta": () => { const m = c.coms.find(x => x.id === b.dataset.m); m.resposta = { data: val("rs-data") || HOJE_S, texto: val("rs-texto") || "(sem resumo)" }; hist(c, `registrou a resposta do outorgado a “${m.assunto}”`); fechar(); },
     "dlg-agenda": () => { dlgAgenda(c, b.dataset.ag); return "x"; },
     sugerir: () => { const ag = b.dataset.ag ? c.agenda.find(x => x.id === b.dataset.ag) : null; const sg = sugerirMD(ag); dlg.querySelector("#ag-mes").value = sg.mes; dlg.querySelector("#ag-dia").value = sg.dia; toast(`Sugerido: ${sg.dia} de ${MESES_L[sg.mes]}`); return "x"; },
     "salvar-agenda": () => {
@@ -1351,12 +1306,12 @@ document.addEventListener("click", ev => {
       if (ag) {
         const v = versaoAtual(ag);
         if (v.mes !== mes || v.dia !== dia) { const erro = mudarData(ag, mes, dia); if (erro) { toast(erro); return "x"; } }
-        ag.nome = nome; ag.obs = obs; hist(c, `alterou a data de cobrança “${nome}”: ${rotAg(ag)}`);
+        ag.nome = nome; ag.obs = obs; hist(c, `alterou a data de cobrança “${nome}”: ${rotAg(ag, c)}`);
       } else {
-        ag = { id: "ag" + Date.now(), nome, versoes: [{ desde: proxMD(mes, dia, HOJE_S), mes, dia }], obs, notifs: {} };
-        c.agenda.push(ag); hist(c, `definiu a data de cobrança “${nome}”: ${rotAg(ag)}, a partir de ${br(ag.versoes[0].desde)}`);
+        ag = { id: "ag" + Date.now(), nome, versoes: [{ desde: proxMD(mes, dia, HOJE_S), mes, dia }], obs, cobradas: {} };
+        c.agenda.push(ag); hist(c, `definiu a data de cobrança “${nome}”: ${rotAg(ag, c)}, a partir de ${br(ag.versoes[0].desde)}`);
       }
-      fechar(); toast(`“${nome}”: ${rotAg(ag)}`);
+      fechar(); toast(`“${nome}”: ${rotAg(ag, c)}`);
     },
     "ag-excluir": () => { const ag = c.agenda.find(x => x.id === b.dataset.ag); if (!confirm(`Excluir a data de cobrança “${ag.nome}”? As obrigações voltam a seguir o prazo do contrato.`)) return "x"; c.agenda = c.agenda.filter(x => x !== ag); hist(c, `excluiu a data de cobrança “${ag.nome}”`); },
     auto: () => {
@@ -1365,14 +1320,14 @@ document.addEventListener("click", ev => {
         const f = fimVig(cc); if ((f && f < HOJE_S) || cc.agenda.length) continue;
         const obs = cc.obs.filter(o => o.rec || o.cod === "QIT001").map(o => o.id); if (!obs.length) continue;
         const sg = sugerirMD();
-        cc.agenda.push({ id: `ag${cc.id}x${n}`, nome: "Comprovação anual", versoes: [{ desde: proxMD(sg.mes, sg.dia, HOJE_S), mes: sg.mes, dia: sg.dia }], obs, notifs: {} });
-        hist(cc, `data de cobrança “Comprovação anual” criada pelo cronograma: todo ${sg.dia} de ${MESES_L[sg.mes]}`); n++;
+        cc.agenda.push({ id: `ag${cc.id}x${n}`, nome: "Comprovação anual", versoes: [{ desde: proxMD(sg.mes, sg.dia, HOJE_S), mes: sg.mes, dia: sg.dia }], obs, cobradas: {} });
+        hist(cc, `data de cobrança “Comprovação anual” criada pelo cronograma: ${rotAg(cc.agenda[cc.agenda.length - 1], cc)}`); n++;
       }
       toast(n ? `${plural(n, "contrato recebeu", "contratos receberam")} data de cobrança` : "Nenhum contrato com obrigação recorrente para agendar");
     },
     mes: () => { S.mes = +b.dataset.m; },
     "eq-pessoa": () => { S.eqPessoa = S.eqPessoa === b.dataset.p ? "" : b.dataset.p; },
-    "dlg-tarefa": () => { dlgTarefa(id); return "x"; },
+    "dlg-tarefa": () => { dlgTarefa(id, b.dataset.titulo); return "x"; },
     "salvar-tarefa": () => {
       const titulo = val("tf-titulo"); if (!titulo) { toast("Diga o que precisa ser feito"); return "x"; }
       const resp = val("tf-resp");
@@ -1410,9 +1365,8 @@ document.addEventListener("change", ev => {
     if (!el.value) { render(); return; }
     const d = dt(el.value), erro = mudarData(ag, d.getMonth(), d.getDate());
     if (erro) { toast(erro); render(); return; }
-    hist(c, `mudou a data de cobrança “${ag.nome}” para ${rotAg(ag)}`); render(); toast(`“${ag.nome}” agora é ${rotAg(ag)}`);
+    hist(c, `mudou a data de cobrança “${ag.nome}” para ${rotAg(ag, c)}`); render(); toast(`“${ag.nome}” agora é ${rotAg(ag, c)}`);
   }
-  else if (a === "trocar-modelo") { const c = contrato(el.dataset.id); dlgNotificar(c, el.value, el.dataset.ob || null, el.dataset.ag || null, el.dataset.d || null); }
 });
 document.addEventListener("keydown", ev => {
   if (ev.key === "Enter" && ev.target.id === "q") { S.f.q = ev.target.value; S.pag = 1; render(); $("#q").focus(); }
