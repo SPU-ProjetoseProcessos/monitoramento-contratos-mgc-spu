@@ -320,7 +320,7 @@ const TIPOS_OUT = {
   pf: "Pessoa física",
 };
 
-const MUNS = { "Curitiba": "7535", "Londrina": "7537", "Maringá": "7691", "Ponta Grossa": "7777", "Cascavel": "7493", "Foz do Iguaçu": "7563", "Paranaguá": "7745", "Guarapuava": "7583", "Laranjeiras do Sul": "7659", "Pontal do Paraná": "5453", "Guaratuba": "7589", "Antonina": "7409", "Matinhos": "7685", "Umuarama": "7927" };
+const MUNS = { "Curitiba": "7535", "Londrina": "7537", "Maringá": "7691", "Ponta Grossa": "7777", "Cascavel": "7493", "Foz do Iguaçu": "7563", "Paranaguá": "7745", "Guarapuava": "7583", "Laranjeiras do Sul": "7659", "Pontal do Paraná": "5453", "Guaratuba": "7589", "Antonina": "7409", "Matinhos": "7685", "Umuarama": "7927", "Morretes": "7701", "Apucarana": "7427", "Toledo": "7897", "Francisco Beltrão": "7567", "Pato Branco": "7765", "Campo Mourão": "7489", "Telêmaco Borba": "7883", "União da Vitória": "7905", "Paranavaí": "7749", "Jacarezinho": "7629", "Castro": "7499" };
 
 const EQUIPE = [
   { id: "ana", nome: "Ana Paula Ribeiro", curto: "Ana Paula", papel: "chefe", cargo: "Chefe da Divisão de Destinação e Monitoramento" },
@@ -389,7 +389,39 @@ function gerarDados() {
     ["Empresa Brasileira de Correios e Telégrafos", "apf", "Cessão de Uso Onerosa", "Maringá", "Centro de tratamento de cartas e encomendas", 1],
     ["Município de Cascavel", "municipio", "Cessão de Uso Gratuita", "Cascavel", "Implantação de centro de educação ambiental", 1],
     ["Município de Antonina", "municipio", "Cessão de Uso Gratuita", "Antonina", "Restauro e uso de casarão histórico como museu", 1],
+    // a partir daqui: contratos que chegaram ao monitoramento e ainda não foram distribuídos
+    ["Universidade Federal da Integração Latino-Americana", "apf", "Entrega", "Foz do Iguaçu", "Moradia estudantil", 1],
+    ["Universidade Tecnológica Federal do Paraná", "apf", "Cessão de Uso Gratuita", "Toledo", "Laboratório de engenharia de bioprocessos", 1],
+    ["Instituto Federal do Paraná", "apf", "Cessão de Uso Gratuita", "Telêmaco Borba", "Instalação do campus Telêmaco Borba", 1],
+    ["Instituto Nacional de Colonização e Reforma Agrária", "apf", "Entrega", "Francisco Beltrão", "Unidade avançada do Incra", 1],
+    ["Departamento Nacional de Infraestrutura de Transportes", "apf", "Entrega", "Campo Mourão", "Posto de pesagem e base de manutenção rodoviária", 0],
+    ["Polícia Rodoviária Federal", "apf", "Cessão de Uso Gratuita", "União da Vitória", "Unidade operacional da PRF", 1],
+    ["Ministério da Agricultura e Pecuária", "apf", "Entrega", "Paranaguá", "Vigilância agropecuária internacional no porto", 1],
+    ["Tribunal Regional Eleitoral do Paraná", "poderes", "Cessão de Uso Gratuita", "Paranavaí", "Cartório eleitoral", 1],
+    ["Justiça Federal — Seção Judiciária do Paraná", "poderes", "Cessão de Uso Gratuita", "Pato Branco", "Funcionamento da Subseção Judiciária", 1],
+    ["Defensoria Pública da União", "poderes", "Cessão de Uso Gratuita", "Maringá", "Unidade regional da DPU", 1],
+    ["Estado do Paraná — Secretaria da Segurança Pública", "estado", "Cessão de Uso Gratuita", "Apucarana", "Delegacia de Polícia Civil", 1],
+    ["Estado do Paraná — Secretaria da Agricultura", "estado", "Cessão de Uso Gratuita", "Castro", "Posto de defesa sanitária animal", 1],
+    ["Estado do Paraná — Instituto Água e Terra", "estado", "Cessão de Uso Gratuita", "Morretes", "Base de fiscalização da Serra do Mar", 0],
+    ["Estado do Paraná — Secretaria da Educação", "estado", "Doação com encargo", "Jacarezinho", "Construção de colégio agrícola", 1],
+    ["Município de Morretes", "municipio", "Cessão de Uso Gratuita", "Morretes", "Terminal turístico ferroviário", 1],
+    ["Município de Apucarana", "municipio", "Doação com encargo", "Apucarana", "Construção de centro de educação infantil", 1],
+    ["Município de Toledo", "municipio", "Concessão de Direito Real de Uso Gratuita", "Toledo", "Habitação de interesse social", 1],
+    ["Município de Castro", "municipio", "Cessão de Uso Gratuita", "Castro", "Restauro de estação ferroviária como centro cultural", 1],
+    ["Município de Campo Mourão", "municipio", "Cessão de Uso Gratuita", "Campo Mourão", "Parque linear e ciclovia", 0],
+    ["Município de União da Vitória", "municipio", "Acordo de Cooperação Técnica — Reurb-S", "União da Vitória", "Regularização fundiária às margens do rio Iguaçu", 0],
+    ["Município de Pato Branco", "municipio", "Cessão de Uso Gratuita", "Pato Branco", "Unidade de pronto atendimento", 1],
+    ["Município de Matinhos", "municipio", "Cessão de Uso Gratuita", "Matinhos", "Posto de salvamento aquático", 1],
+    ["Clube Náutico de Paranaguá", "empresa", "Cessão de Uso Onerosa", "Paranaguá", "Sede náutica e garagem de barcos", 1],
+    ["Associação dos Maricultores de Guaratuba", "empresa", "Cessão de Uso Onerosa", "Guaratuba", "Cultivo de ostras em espelho d'água", 0],
+    ["Pousada Recanto da Ilha Ltda.", "empresa", "Cessão de Uso Onerosa", "Pontal do Paraná", "Pousada em terreno de marinha", 1],
+    ["Logística Porto Sul Ltda.", "empresa", "Cessão de Uso Onerosa", "Paranaguá", "Armazém retroportuário", 1],
+    ["Santa Casa de Misericórdia de Castro", "empresa", "Cessão de Uso Gratuita", "Castro", "Ampliação de ala hospitalar", 1],
+    ["Pessoa física", "pf", "Cessão de Uso Onerosa", "Matinhos", "Quiosque na orla", 1],
+    ["Pessoa física", "pf", "Cessão de Uso Onerosa", "Morretes", "Uso residencial em área ribeirinha", 1],
+    ["Pessoa física", "pf", "Concessão de Uso Especial para Fins de Moradia", "Paranaguá", "Moradia", 1],
   ];
+  const NOVOS = 42; // índice a partir do qual os contratos chegaram sem responsável
 
   const contratos = [];
   BASE.forEach(([nome, tipo, instr, mun, fin, edif], i) => {
@@ -418,7 +450,7 @@ function gerarDados() {
       rep,
       mun, rip: `${MUNS[mun]}.${String(int(1, 99999)).padStart(5, "0")}.${int(100, 999)}-${int(0, 9)}`,
       instr, inicio, vig, fin, sei: `10154.${int(100000, 999999)}/${inicio.slice(0, 4)}-${int(10, 99)}`,
-      resp: r() < 0.88 ? pick(["bruno", "carla", "diego", "elisa"]) : null,
+      resp: i < NOVOS && r() < 0.88 ? pick(["bruno", "carla", "diego", "elisa"]) : null,
       obs: [], cump: {}, agenda: [], tarefas: [], notas: [], hist: [],
     };
     // obrigações, pelas regras de aplicação da planilha
@@ -444,7 +476,7 @@ function gerarDados() {
     }
     // datas de cobrança: tributos no começo do ano, seguro no aniversário da apólice, o resto numa comprovação anual
     const vigente = !fimVig(c) || fimVig(c) >= HOJE_S;
-    if (vigente && r() < 0.72) {
+    if (vigente && i < NOVOS && r() < 0.72) {
       const tem = cod => c.obs.find(o => o.cod === cod);
       const usados = new Set();
       const novaAg = (nome, mes, dia, obs, desde) => { obs.forEach(o => usados.add(o)); c.agenda.push({ id: `${id}a${c.agenda.length + 1}`, nome, versoes: [{ desde, mes, dia }], obs, cobradas: {} }); };
@@ -464,6 +496,7 @@ function gerarDados() {
       }
     }
     c.hist.push({ quando: inicio, quem: "MGC", o: "Contrato incluído no MGC (versão 1)" });
+    if (i >= NOVOS) c.hist.push({ quando: addD(HOJE_S, -int(3, 12)), quem: "MGC", o: "Contrato encaminhado ao monitoramento da SPU/PR; aguarda distribuição" });
     contratos.push(c);
   });
 
@@ -511,7 +544,7 @@ function gerarDados() {
   N(3, "Outorgado sinalizou por telefone que quer renovar.", addD(HOJE_S, 6), resp(3), addD(HOJE_S, -1));
 
 
-  return { v: 5, ord: { k: "sit", d: 1 }, eu: "ana", contratos, view: "contratos", sel: null, aba: "obrigacoes", f: { q: "", mun: "", tipo: "", instr: "", sit: "", resp: "", ag: "" }, abertos: false, pag: 1, marcados: [], ano: 2027, mes: 0, eqPessoa: "" };
+  return { v: 6, ord: { k: "sit", d: 1 }, eu: "ana", contratos, view: "contratos", sel: null, aba: "obrigacoes", f: { q: "", mun: "", tipo: "", instr: "", sit: "", resp: "", ag: "" }, abertos: false, pag: 1, marcados: [], ano: 2027, mes: 0, eqPessoa: "" };
 }
 
 /* ================================================================
@@ -652,10 +685,10 @@ const pedidoPendente = t => t.andamento && t.andamento.pedido && !t.andamento.re
 /* ================================================================
    Estado
    ================================================================ */
-const CHAVE = "mgc-monitoramento-v5";
+const CHAVE = "mgc-monitoramento-v6";
 let S;
 try { S = JSON.parse(localStorage.getItem(CHAVE)); } catch (e) { S = null; }
-if (!S || S.v !== 5) S = gerarDados();
+if (!S || S.v !== 6) S = gerarDados();
 function gravar() { try { localStorage.setItem(CHAVE, JSON.stringify(S)); } catch (e) { } }
 const eu = () => S.eu;
 const souChefe = () => pessoa(S.eu)?.papel === "chefe";
@@ -1081,7 +1114,7 @@ function vEquipe() {
   const por = k => abertas.filter(x => estTarefa(x.t).k === k).length;
   const pedidos = abertas.filter(x => pedidoPendente(x.t));
   const respondidos = ts.filter(x => x.t.andamento && x.t.andamento.resposta).sort((a, b) => b.t.andamento.respondido.localeCompare(a.t.andamento.respondido));
-  const semResp = S.contratos.filter(c => !c.resp);
+  const semResp = S.contratos.filter(c => !c.resp).sort((a, b) => SIT[resumo(a).sit].p - SIT[resumo(b).sit].p);
   const servidores = EQUIPE;
   const linhaP = p => {
     const cs = S.contratos.filter(c => c.resp === p.id);
@@ -1117,9 +1150,14 @@ function vEquipe() {
       <section class="bloco"><div class="bloco-cab"><h2>Andamentos respondidos</h2></div>
         <div class="bloco-corpo">${respondidos.slice(0, 8).map(({ t, c }) => `<div class="item verde"><div class="corpo"><button class="lk forte" data-act="dlg-ver-tarefa" data-id="${c.id}" data-t="${t.id}" style="color:var(--texto)">${esc(t.titulo)}</button>
           <div class="resposta">${esc(t.andamento.resposta)}</div><div class="meta"><span>${esc(nomeCurto(t.resp))}, ${br(t.andamento.respondido)}</span><span class="mono">${esc(c.numero)}</span></div></div></div>`).join("") || `<p class="vazio">Nenhuma resposta ainda.</p>`}</div></section>
-      <section class="bloco"><div class="bloco-cab"><h2>Contratos sem responsável</h2></div>
-        <div class="bloco-corpo">${semResp.map(c => `<div class="item cinza"><div class="corpo"><button class="lk mono" data-act="abrir" data-id="${c.id}">${esc(c.numero)}</button><div class="meta"><span>${esc(c.outorgado)}</span><span class="tag ${SIT[resumo(c).sit].cor}">${SIT[resumo(c).sit].rot}</span></div>
-          <select data-act="resp-contrato" data-id="${c.id}" style="height:32px;margin-top:6px"><option value="">Atribuir a…</option>${EQUIPE.filter(p => p.papel === "servidor").map(p => `<option value="${p.id}">${esc(p.nome)}</option>`).join("")}</select></div></div>`).join("") || `<p class="vazio">Todos os contratos têm responsável.</p>`}</div></section>
+      <section class="bloco"><div class="bloco-cab"><h2>Contratos sem responsável <small>${semResp.length}</small></h2></div>
+        <div class="bloco-corpo">
+          ${semResp.length ? `<button class="bt pri peq" data-act="distribuir" style="width:100%;margin-bottom:6px">Distribuir pela carga de cada um</button>
+          <button class="bt peq" data-act="ver-semresp" style="width:100%;margin-bottom:6px">Escolher na lista e distribuir em lote</button>
+          <p class="mini" style="margin-bottom:12px">“Pela carga” dá cada contrato a quem tem menos contratos, começando pelos mais urgentes. Na lista, você marca os contratos e escolhe a pessoa.</p>` : ""}
+          ${semResp.slice(0, 6).map(c => `<div class="item cinza"><div class="corpo"><button class="lk mono" data-act="abrir" data-id="${c.id}">${esc(c.numero)}</button><div class="meta"><span>${esc(c.outorgado)}</span><span class="tag ${SIT[resumo(c).sit].cor}">${SIT[resumo(c).sit].rot}</span></div>
+          <select data-act="resp-contrato" data-id="${c.id}" style="height:32px;margin-top:6px"><option value="">Atribuir a…</option>${EQUIPE.filter(p => p.papel === "servidor").map(p => `<option value="${p.id}">${esc(p.nome)}</option>`).join("")}</select></div></div>`).join("") || `<p class="vazio">Todos os contratos têm responsável.</p>`}
+          ${semResp.length > 6 ? `<p class="mini" style="margin-top:6px">e mais ${semResp.length - 6}…</p>` : ""}</div></section>
     </aside>
   </div>`;
 }
@@ -1326,6 +1364,17 @@ document.addEventListener("click", ev => {
       toast(n ? `${plural(n, "contrato recebeu", "contratos receberam")} data de cobrança` : "Nenhum contrato com obrigação recorrente para agendar");
     },
     mes: () => { S.mes = +b.dataset.m; },
+    distribuir: () => {
+      const servs = EQUIPE.filter(p => p.papel === "servidor");
+      const sem = S.contratos.filter(x => !x.resp).sort((a, b) => SIT[resumo(a).sit].p - SIT[resumo(b).sit].p);
+      const carga = Object.fromEntries(servs.map(p => [p.id, S.contratos.filter(x => x.resp === p.id).length]));
+      const plano = sem.map(x => { const p = servs.reduce((m, q) => carga[q.id] < carga[m.id] ? q : m); carga[p.id]++; return [x, p.id]; });
+      const soma = servs.map(p => [p, plano.filter(([, id]) => id === p.id).length]).filter(([, n]) => n);
+      if (!confirm(`Distribuir ${plural(sem.length, "contrato")} assim?\n\n${soma.map(([p, n]) => `${p.nome}: +${n} (fica com ${carga[p.id]})`).join("\n")}`)) return "x";
+      for (const [x, id] of plano) { x.resp = id; hist(x, `atribuiu o contrato a ${nomeCurto(id)} (distribuição pela carga)`); }
+      toast(`${plural(sem.length, "contrato distribuído", "contratos distribuídos")}: ${soma.map(([p, n]) => `${p.curto} ${n}`).join(", ")}`);
+    },
+    "ver-semresp": () => { S.view = "contratos"; S.f = { q: "", mun: "", tipo: "", instr: "", sit: "", resp: "_sem", ag: "" }; S.pag = 1; S.marcados = []; scrollTo(0, 0); },
     "eq-pessoa": () => { S.eqPessoa = S.eqPessoa === b.dataset.p ? "" : b.dataset.p; },
     "dlg-tarefa": () => { dlgTarefa(id, b.dataset.titulo); return "x"; },
     "salvar-tarefa": () => {
